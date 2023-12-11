@@ -54,15 +54,14 @@ class SubCategory(models.Model):
 # ------------------------------------------------
 # Управление складскими запасами
 class Order(models.Model):
-    STATUS_CHOICES = (
+    STATUS_CHOICES = [
         ('draft', 'Черновик'),
         ('confirmed', 'Подтвержден'),
         ('shipped', 'Отправлен'),
         ('delivered', 'Доставлен'),
-    )
+    ]
 
     user = models.ForeignKey('auths.CustomUser', on_delete=models.CASCADE, verbose_name='Пользователь')
-    items = models.ManyToManyField(Mebels, through='OrderItem', verbose_name='Товары')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name='Статус')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
@@ -75,9 +74,8 @@ class Order(models.Model):
     def __str__(self):
         return f'Заказ #{self.pk}'
 
-
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='Заказ')
     mebel = models.ForeignKey(Mebels, on_delete=models.CASCADE, verbose_name='Товар')
     quantity = models.PositiveIntegerField(default=1, verbose_name='Заказанное количество')
     delivered_quantity = models.PositiveIntegerField(default=0, verbose_name='Доставленное количество')

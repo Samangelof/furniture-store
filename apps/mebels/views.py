@@ -10,14 +10,12 @@ from .models import (
     SubCategory,
     CartItem,
     Order,
-    OrderItem
 )
 from .serializers import (
     MebelsSerializer,
     SubCategorySerializer,
     CartItemSerializer,
-    OrderSerializer,
-    OrderItemSerializer
+    OrderSerializer
 )
 
 
@@ -149,22 +147,27 @@ class LikeMebelView(APIView):
 class OrderListCreateView(ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [AllowAny]
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
 
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-class OrderItemListCreateView(ListCreateAPIView):
-    queryset = OrderItem.objects.all()
-    serializer_class = OrderItemSerializer
-    permission_classes = [AllowAny]
-
-
-class OrderItemDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = OrderItem.objects.all()
-    serializer_class = OrderItemSerializer
-    permission_classes = [IsAuthenticated, IsOrderItemOwner]
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
